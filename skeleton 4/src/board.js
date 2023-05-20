@@ -119,19 +119,30 @@ Board.prototype.isOccupied = function (pos) {
  * Returns empty array if it hits an empty position.
  *
  * Returns empty array if no pieces of the opposite color are found.
- *///                                             
+ *///                                
+ 
 Board.prototype._positionsToFlip = function (pos, color, dir, piecesToFlip) {
-  if (!this.isValidPos(pos)) return [];
-  if (piecesToFlip.length === 0) return [];
-  let x = pos[0] + dir[0];
-  let y = pos[1] + dir[1];
-  let gridPos = this.grid[x][y];
+  if (piecesToFlip === undefined) {
+    piecesToFlip = [];
+  } else {
+    piecesToFlip.push(pos);
+  }
 
-  // const piecesToFlip = [];
+  let newX = pos[0] + dir[0];
+  let newY = pos[1] + dir[1];
+  let newPos = [newX, newY];
+  
+  if (!this.isValidPos(newPos)) return [];
 
-
-
-
+  if (this.isOccupied(newPos) === false) {
+    return [];
+  } else {
+    if (this.isMine(newPos, color) === false) {
+      return this._positionsToFlip(newPos, color, dir, piecesToFlip);
+    } else {
+      return piecesToFlip;
+    }
+  }
 };
 
 /**
@@ -139,7 +150,22 @@ Board.prototype._positionsToFlip = function (pos, color, dir, piecesToFlip) {
  * taking the position will result in some pieces of the opposite
  * color being flipped.
  */
-Board.prototype.validMove = function (pos, color) {};
+Board.prototype.validMove = function (pos, color) {
+
+  if (this.isOccupied(pos) === true) {
+    return false;
+  }
+
+  for (let i = 0; i < Board.DIRS.length; i ++) {
+    dir = Board.DIRS[i];
+    if ( this._positionsToFlip(pos, color, dir).length > 0 ) {
+      return true;
+    }
+  }
+  return false;
+
+};
+
 
 /**
  * Adds a new piece of the given color to the given position, flipping the
@@ -147,7 +173,17 @@ Board.prototype.validMove = function (pos, color) {};
  *
  * Throws an error if the position represents an invalid move.
  */
-Board.prototype.placePiece = function (pos, color) {};
+Board.prototype.placePiece = function (pos, color) {
+
+  x = pos[0];
+  y = pos[1];
+
+  if (this.validMove(pos, color) === false) {
+    throw new Error("Invalid move!");
+  }
+
+  // piecesToFlip = this._positionsToFlip(pos, color, )
+};
 
 /**
  * Produces an array of all valid positions on
